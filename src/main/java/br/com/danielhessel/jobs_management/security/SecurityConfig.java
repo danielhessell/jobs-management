@@ -22,6 +22,7 @@ public class SecurityConfig {
                 auth
                     .requestMatchers("/candidates/").permitAll()
                     .requestMatchers("/companies/").permitAll()
+                    .requestMatchers("/auth/candidates").permitAll()
                     .requestMatchers("/auth/companies").permitAll();
                 auth.anyRequest().authenticated();
             })
