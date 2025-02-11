@@ -22,6 +22,7 @@ public class AuthCandidateController {
     public ResponseEntity<Object> login(@RequestBody AuthCandidateRequestDTO authCandidateRequestDTO) {
         try {
             var result = this.authCandidateUseCase.execute(authCandidateRequestDTO);
+            System.out.println(result);
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
