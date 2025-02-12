@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.danielhessel.jobs_management.modules.candidate.CandidateEntity;
 import br.com.danielhessel.jobs_management.modules.candidate.dtos.ProfileCandidateResponseDTO;
+import br.com.danielhessel.jobs_management.modules.candidate.entities.ApplyJobEntity;
+import br.com.danielhessel.jobs_management.modules.candidate.usecases.ApplyJobCandidateUseCase;
 import br.com.danielhessel.jobs_management.modules.candidate.usecases.CreateCandidateUseCase;
 import br.com.danielhessel.jobs_management.modules.candidate.usecases.ListAllJobsByFilterUseCase;
 import br.com.danielhessel.jobs_management.modules.candidate.usecases.ProfileCandidateUseCase;
@@ -30,8 +32,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
-
 @RestController
 @RequestMapping("/candidates")
 @Tag(name = "Candidatos", description = "Informações do candidato")
@@ -45,6 +45,9 @@ public class CandidateController {
 
     @Autowired
     private ListAllJobsByFilterUseCase listAllJobsByFilterUseCase;
+
+    @Autowired
+    private ApplyJobCandidateUseCase applyJobCandidateUseCase;
 
     @PostMapping("/")
     @Operation(summary = "Cadastro de candidato", description = "Recurso responsável por cadastrar um candidato.")
@@ -100,5 +103,25 @@ public class CandidateController {
         return this.listAllJobsByFilterUseCase.execute(filter);
     }
     
+    @PostMapping("/jobs/apply")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    @Operation(summary = "Incrição do candidato para uma vaga", description = "Recurso responsável pela inscrição do candidato em uma vaga.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", content = {
+            @Content(
+                array = @ArraySchema(schema = @Schema(implementation = ApplyJobEntity.class))
+            )
+        })
+    })
+    @SecurityRequirement(name = "jwt_auth")
+    public ResponseEntity<Object> applyJob(HttpServletRequest request, @RequestBody UUID jobId) {
+        var candidateId = request.getAttribute("candidateId");
 
+        try {
+            var result = this.applyJobCandidateUseCase.execute(UUID.fromString(candidateId.toString()), jobId);
+            return ResponseEntity.ok().body(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
